@@ -4,52 +4,59 @@ import cv2
 from time import sleep
 from gpiozero import MotionSensor
 from gpiozero import Servo
-from gpiozero.pins.mock import MockFactory
 
 class AutomaticFeeder:
-    def __init__(self, camera, delay, num_images) -> None:
+    def __init__(self, camera, delay, num_images):
+        # Pin setup
+        self.servo = Servo(27)
+        self.motion_sensor = MotionSensor(17)
+        
+        self.camera = camera 
         self.detections = []
         self.image_path = 'test_images/'
         self.images = []
-        self.device = cv2.VideoCapture(camera)
         self.delay = delay
         self.first_delay = delay * 1.5
         self.num_images = num_images
         self.model = 0
-    	
-        myCorrection=0.45
-        maxPW=(2.0+myCorrection)/1000
-        minPW=(1.0-myCorrection)/1000
+        self.motion_detected = True
 
-        self.servo = Servo(27)
-        print("Calibrating the servo...")
+        # Den Servo kalibrieren
         self.servo.min()
-        sleep(1)
         self.servo.mid()
-        sleep(1)
         self.servo.max()
-        sleep(1)
-        print("Calibration complete.")
         self.servo.detach()
 
-        self.motion_sensor = MotionSensor(17)
+    def procedure_controller(self):
+        while True:
+            print('Detecting motion...\n')
+            self.detect_motion()
 
-    def motion_detection(self):
-        motion = 0
-        while motion == 0:
-            print('Detecting Movement')
+            print('Taking pictures...\n')
+            self.take_pictures()
+
+            print('Scanning images...\n')
+            self.image_recognition()
+
+            print('Looking for dogs...')
+            if self.detect_dogs():
+                print('Opening lid...')
+            else:
+                print('No doggo detected :(')
+
+    def detect_motion(self): 
+        while self.motion_detected:
             self.motion_sensor.wait_for_active()
-            motion = 1
             sleep(1)
-
-        print('taking_pictures')
-        self.take_pictures()
+            self.motion_detected = False
 
     def take_pictures(self):
+        used_cam = cv2.VideoCapture(self.camera)
+
         if not os.path.exists(self.image_path):
             os.makedirs(self.image_path)
 
-        if not self.device.isOpened():
+        if not used_cam.isOpened():
             print("Error: Could not open camera.")
             return
 
@@ -58,7 +65,7 @@ class AutomaticFeeder:
 
             for i in range(self.num_images):
                 sleep(self.delay)
-                ret, frame = self.device.read()
+                ret, frame = used_cam.read()
 
                 filename = os.path.join(self.image_path, f'image_{i+1}.jpg')
                 self.images.append(filename)
@@ -69,12 +76,8 @@ class AutomaticFeeder:
 
         finally:
             # Release the camera and destroy OpenCV windows regardless of exceptions
-            self.device.release()
+            used_cam.release()
             cv2.destroyAllWindows()
-
-        print('Detecting')
-        self.detect()
-
 
     def old_take_pictures(self):
         if not os.path.exists(self.image_path):
@@ -108,7 +111,7 @@ class AutomaticFeeder:
         print('Detecting')
         self.detect()
 
-    def detect(self):
+    def image_recognition(self):
         self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
         #self.model.classes = [15,16]
 
@@ -124,11 +127,11 @@ class AutomaticFeeder:
                 class_name = class_names[label_index]
                 self.detections.append(class_name)
 
-        #if ('dog' in self.detections):
-        print('Opening Lid!')
-        self.open_lid()
-        #else:
-        #    pass
+    def detect_dogs(self):
+        if 'dog' in self.detections:
+            return True
+        else:
+            return False
 
     def open_lid(self):
         self.servo.value = 0.5  # Set to mid position
@@ -141,8 +144,10 @@ class AutomaticFeeder:
         sleep(1)
         self.servo.detach()
 
+
+
 feeder = AutomaticFeeder(camera = 0, delay = 0.5, num_images = 5)
-
-print('Starting')
-feeder.motion_detection()
-
+try:
+    feeder.procedure_controller()
+except Exception as e:
+    print(e)
