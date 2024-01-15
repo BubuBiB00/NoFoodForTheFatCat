@@ -19,7 +19,6 @@ class AutomaticFeeder:
         self.first_delay = delay * 1.5
         self.num_images = num_images
         self.model = 0
-        self.motion_detected = True
 
         # Den Servo kalibrieren
         self.servo.min()
@@ -45,10 +44,8 @@ class AutomaticFeeder:
                 print('No doggo detected :(')
 
     def detect_motion(self): 
-        while self.motion_detected:
-            self.motion_sensor.wait_for_active()
-            sleep(1)
-            self.motion_detected = False
+        self.motion_sensor.wait_for_active()
+        sleep(1)
 
     def take_pictures(self):
         used_cam = cv2.VideoCapture(self.camera)
