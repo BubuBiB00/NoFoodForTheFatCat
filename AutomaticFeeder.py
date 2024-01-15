@@ -2,7 +2,8 @@ import torch
 import os
 import cv2
 from time import sleep
-from gpiozero import MotionSensor, Servo, PiGPIOFactory
+from gpiozero import MotionSensor, Servo
+from gpiozero.pins.pigpio import PiGPIOFactory
 
 class AutomaticFeeder:
     def __init__(self, camera, delay, num_images):
