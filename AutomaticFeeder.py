@@ -39,9 +39,11 @@ class AutomaticFeeder:
 
             print('Looking for dogs...')
             if self.detect_dogs():
-                print('Opening lid...')
+                print('Opening lid...\n')
+                self.open_lid()
             else:
-                print('No doggo detected :(')
+                print('No doggo detected :(\n')
+                sleep(2)
 
     def detect_motion(self): 
         self.motion_sensor.wait_for_active()
