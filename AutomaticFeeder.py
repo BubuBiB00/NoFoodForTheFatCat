@@ -39,6 +39,7 @@ class AutomaticFeeder:
 
             print('Looking for dogs...')
             if self.detect_dogs():
+                print('Found dog!\n')
                 print('Opening lid...\n')
                 self.open_lid()
             else:
@@ -78,38 +79,6 @@ class AutomaticFeeder:
             used_cam.release()
             cv2.destroyAllWindows()
 
-    def old_take_pictures(self):
-        if not os.path.exists(self.image_path):
-            os.makedirs(self.image_path)
-
-        if not self.device.isOpened():
-            print("Error: Could not open camera.")
-            return
-        
-        sleep(self.first_delay)
-
-        for i in range(self.num_images):
-            sleep(self.delay)
-            try:
-                ret, frame = self.device.read()
-
-            except Exception as e:
-                print(e)
-
-            try:
-                filename = os.path.join(self.image_path, f'image_{i+1}.jpg')
-                self.images.append(filename)
-                cv2.imwrite(filename, frame)
-                
-            except Exception as e:
-                print(e)
-
-        self.device.release()
-        cv2.destroyAllWindows()
-        
-        print('Detecting')
-        self.detect()
-
     def image_recognition(self):
         self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
         #self.model.classes = [15,16]
@@ -127,6 +96,8 @@ class AutomaticFeeder:
                 self.detections.append(class_name)
 
     def detect_dogs(self):
+        print(self.detections)
+
         if 'dog' in self.detections:
             return True
         else:
