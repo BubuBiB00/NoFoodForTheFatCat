@@ -1,4 +1,4 @@
 /test_images
 /venv
-/Externals
+/Externals/*
 yolov5s.pt
