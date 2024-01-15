@@ -96,6 +96,7 @@ class AutomaticFeeder:
                 self.detections.append(class_name)
 
     def detect_dogs(self):
+        print('Detections...')
         print(self.detections)
 
         if 'dog' in self.detections:
