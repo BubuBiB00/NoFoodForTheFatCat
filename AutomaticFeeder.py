@@ -2,13 +2,13 @@ import torch
 import os
 import cv2
 from time import sleep
-from gpiozero import MotionSensor
-from gpiozero import Servo
+from gpiozero import MotionSensor, Servo, PiGPIOFactory
 
 class AutomaticFeeder:
     def __init__(self, camera, delay, num_images):
+        pin_factory = PiGPIOFactory()
         # Pin setup
-        self.servo = Servo(27)
+        self.servo = Servo(27,pin_factory=pin_factory)
         self.motion_sensor = MotionSensor(17)
         
         self.camera = camera 
@@ -81,11 +81,10 @@ class AutomaticFeeder:
 
     def image_recognition(self):
         self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
-        #self.model.classes = [15,16]
+        self.model.classes = [15,16]
 
         for image in self.images:   
             results = self.model(image)
-            #results.show()
 
             prediction = results.pred[0]
             class_names = results.names
