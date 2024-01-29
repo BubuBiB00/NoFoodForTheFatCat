@@ -118,8 +118,8 @@ class AutomaticFeeder:
 
 
 args = sys.argv
-
-feeder = AutomaticFeeder(camera = args[1], delay = 0.5, num_images = 5)
+print(args[1])
+feeder = AutomaticFeeder(camera = int(args[1]), delay = 0.5, num_images = 5)
 try:
     feeder.procedure_controller()
 except Exception as e:
