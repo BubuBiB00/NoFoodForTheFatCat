@@ -4,6 +4,7 @@ import cv2
 from time import sleep
 from gpiozero import MotionSensor, Servo
 from gpiozero.pins.pigpio import RPiGPIOFactory
+import sys
 
 class AutomaticFeeder:
     def __init__(self, camera, delay, num_images):
@@ -105,7 +106,7 @@ class AutomaticFeeder:
             return False
 
     def open_lid(self):
-        self.servo.value = 0.5  # Set to mid position
+        self.servo.value = 0.2  # Set to mid position
         sleep(0.5)
         self.servo.value = 0.0  # Set to min position
         sleep(1)
@@ -116,8 +117,9 @@ class AutomaticFeeder:
         self.servo.detach()
 
 
+args = sys.argv
 
-feeder = AutomaticFeeder(camera = 0, delay = 0.5, num_images = 5)
+feeder = AutomaticFeeder(camera = args[1], delay = 0.5, num_images = 5)
 try:
     feeder.procedure_controller()
 except Exception as e:
