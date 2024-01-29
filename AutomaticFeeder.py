@@ -3,12 +3,12 @@ import os
 import cv2
 from time import sleep
 from gpiozero import MotionSensor, Servo
-from gpiozero.pins.pigpio import RPiGPIOFactory
+from gpiozero.pins.pigpio import PiGPIOFactory
 import sys
 
 class AutomaticFeeder:
     def __init__(self, camera, delay, num_images):
-        pin_factory = RPiGPIOFactory()
+        pin_factory = PiGPIOFactory()
         # Pin setup
         self.servo = Servo(27,pin_factory=pin_factory)
         self.motion_sensor = MotionSensor(17)
